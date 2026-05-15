@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Maker</title>
+    <style>
+        /* Hauptcontainer für das Chat-Fenster */
+        #main {
+            width: 450px;
+            height: 700px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+            position: relative;
+            /* Oder body */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Container für Nachrichtenbereich */
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Allgemeine Bubble-Stile */
+        .bubbleI,
+        .bubbleY {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .bubbleY {
+            align-self: flex-start;
+            background-color: #e5e5ea;
+            color: black;
+            border-bottom-left-radius: 2px;
+        }
+
+        .bubbleI {
+            align-self: flex-end;
+            background-color: #007aff;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-input-area {
+            padding: 10px;
+            background-color: white;
+            border-top: 1px solid #ddd;
+            display: flex;
+            height: auto;
+            min-height: 15px;
+        }
+
+        .notification {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #666666
+        }
+
+        .errorMessage {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #ff0000
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main">
+        <div class="chat-messages" id="chatMessages">
+        </div>
+
+        <div class="chat-input-area"><select id="typeOfMessage">
+                <optgroup label="Users">
+                    <option value="you">You</option>
+                    <option value="me">Me</option>
+                </optgroup>
+                <optgroup label="More">
+                    <option value="notification">Notification</option>
+                    <option value="error">Error</option>
+                </optgroup>
+            </select>
+            <textarea id="messageInput" type="text" placeholder="Message..." style="flex:1; padding:5px;"></textarea>
+            <button onclick="send()">Senden</button>
+        </div>
+        <button onclick="clearChat()">Delete Chat History</button>
+        <button onclick="clearChatWithOutStains()">Delete Chat without Stains</button>
+        <button onclick="removeLast()">Remove latest Message</button>
+        <button onclick="downloadChat(chatMessages.innerHTML)">Download Chat</button>
+    </div>
+    <script>
+        const messageInput = document.getElementById('messageInput');
+        const type = document.getElementById('typeOfMessage');
+        const chatMessages = document.getElementById('chatMessages');
+
+        function send() {
+            let mesType = type.value;
+            let mes = messageInput.value;
+
+            const newMessage = document.createElement('div');
+            newMessage.innerText = mes;
+            if (mesType === 'me') {
+                newMessage.className = 'bubbleI';
+            } else if (mesType === 'you') {
+                newMessage.className = 'bubbleY';
+            } else if (mesType === 'error') {
+                newMessage.className = 'errorMessage';
+            } else if (mesType === 'notification') {
+                newMessage.className = 'notification';
+            }
+            chatMessages.appendChild(newMessage);
+            chatMessages.lastChild.scrollIntoView({ behavior: 'smooth' });
+            messageInput.value = '';
+        }
+
+        function removeLast() {
+            chatMessages.lastChild.remove();
+        }
+
+        function clearChat() {
+            const messages = document.querySelectorAll('div[class="bubbleI"],div[class="bubbleY"],div[class="errorMessage"],div[class="notification"]');
+            messages.forEach((e) => { e.remove(); });
+            const newMessage = document.createElement('div');
+            newMessage.innerText = 'Chat wurde geleert';
+            newMessage.className = 'notification';
+            chatMessages.appendChild(newMessage);
+        }
+
+        function clearChatWithOutStains() {
+            const messages = document.querySelectorAll('div[class="bubbleI"],div[class="bubbleY"],div[class="errorMessage"],div[class="notification"]');
+            messages.forEach((e) => { e.remove(); });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+                event.preventDefault();
+                removeLast();
+            } else if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
+                event.preventDefault();
+                clearChat();
+            } else if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                clearChatWithOutStains();
+            }
+        });
+
+        function downloadChat(data, filename) {
+            let html = `
+            <!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Maker</title>
+    <style>
+        #main {
+            width: 450px;
+            height: 700px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            /* Oder body */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bubbleI,
+        .bubbleY {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .bubbleY {
+            align-self: flex-start;
+            background-color: #e5e5ea;
+            color: black;
+            border-bottom-left-radius: 2px;
+        }
+
+        .bubbleI {
+            align-self: flex-end;
+            background-color: #007aff;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-input-area {
+            padding: 10px;
+            background-color: white;
+            border-top: 1px solid #ddd;
+            display: flex;
+        }
+
+        .notification {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #666666
+        }
+
+        .errorMessage {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #ff0000
+        }
+    </style>
+</head>
+
+<body id="main">
+    <div class="chat-messages">
+    ${data}
+    </div>
+    </body>
+        </html>
+            `;
+
+            const blob = new Blob([html], { type: "plain/html" });
+
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename + ".html";
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+
+</html>
